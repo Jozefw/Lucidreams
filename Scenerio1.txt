@@ -1,0 +1,55 @@
+# Scenario 1: Login and Logout Analysis
+
+Filespace: homework.recruiting
+Filespace UUID: be63cc8a-4402-4d54-89ba-e4d18567bdd4
+User: aunt-may1964@gmail.com
+
+## Part 1: Login and Logout Timestamps
+
+All timestamps are UTC. Sessions are matched by process ID (PID).
+
+| PID | Login Timestamp (UTC) | Logout Timestamp (UTC) |
+|---|---|---|
+| 42811 | 2026-07-01T13:05:03.980996Z | 2026-07-09T17:00:01.039450Z |
+| 44930 | 2026-07-09T18:10:02.856151Z | 2026-07-10T22:20:01.001145Z |
+| 46081 | 2026-07-13T13:15:03.766829Z | 2026-07-24T22:30:00.349648Z |
+| 47924 | 2026-07-27T14:05:03.085339Z | 2026-07-28T21:10:00.427816Z |
+| 49425 | 2026-07-29T13:10:03.032124Z | 2026-08-07T22:25:00.400941Z |
+| 51492 | 2026-08-10T14:15:03.476150Z | 2026-08-11T20:05:00.395155Z |
+| 53499 | 2026-08-12T13:05:04.062218Z | 2026-08-18T23:10:00.593274Z |
+| 53120 | 2026-08-19T13:38:07.295916Z | 2026-08-19T13:39:27.981639Z |
+| 55912 | 2026-08-19T13:39:36.086823Z | No matching logout found |
+| 73404 | 2026-08-19T17:12:35.572736Z | 2026-08-19T17:30:21.728599Z |
+| 76120 | 2026-08-19T17:30:38.156987Z | No matching logout found |
+
+Two login sessions (PIDs 55912 and 76120) have no matching logout entry in the examined logs.
+
+For PID 55912, the subsequent startup contains an "Ungraceful exit detected!" message. For PID 76120, no matching logout was found, and the available log does not conclusively establish why the session ended.
+
+### Part 2. Local settings changes
+
+The logs show two local settings that changed on the workstation (`node=3`).
+
+| Date (UTC) | Setting | Value |
+|---|---|---|
+| July 19, 2026 | Cache size | 200 GiB |
+| August 1, 2026 | Cache size | 50 GiB |
+| August 19, 2026 | Cache size | 50 GiB |
+| August 19, 2026 | Download rate limit | 500 MB, then unlimited about five seconds later |
+
+The `ClientConfigManager` entries identify the settings, and the following component messages confirm the values. Entries marked `node=0` are global settings, not local changes.
+
+The administrator can compare these local settings with global policy to see whether any adjustments are needed. The logs confirm the changes but do not identify who made them.
+
+
+### Part 3. Abrupt versus clean daemon exits
+
+| PID | Date (UTC) | Finding |
+|---|---|---|
+| 55912 | August 19, 2026, 13:39 | **Ungraceful exit.** No logout recorded. Confirmed by the next startup’s ungraceful-exit and dirty-cache warnings. |
+| Other completed sessions | Various | **Clean exits.** Logs show the application terminating successfully. |
+| 76120 | August 19, 2026, 17:30 onward | **Inconclusive.** The log ends before the session’s exit is recorded. |
+
+A full search of `Lucid.log` found one “Ungraceful exit detected!” message, confirming one ungraceful exit for the target workstation. The logs do not establish whether it was caused by a killed process, system shutdown, or another event.
+
+

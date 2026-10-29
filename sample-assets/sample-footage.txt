@@ -1,0 +1,2 @@
+LucidLink homework sample asset
+This small text file is used to verify mounted-filesystem ingest.
